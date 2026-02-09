@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "minka-knowledge": {
+      "command": "python",
+      "args": ["-m", "mcp-server.server"],
+      "cwd": "/Users/statick/Minka",
+      "env": {}
+    }
+  }
+}
