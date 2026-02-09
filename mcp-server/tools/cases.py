@@ -202,6 +202,126 @@ Ford Motor Company: paradas de producción.
         "impact": "Global - billions in damages",
         "lesson": "Updates matter. Especially critical ones.",
     },
+    "stuxnet": {
+        "title": "Stuxnet - El Cyber Missile",
+        "hook": "Un gusano que destruyó centrifugadoras nucleares.",
+        "story": """
+Stuxnet fue descubierto en 2010.
+Era extraordinariamente complejo:
+- 4 zero-days exploited
+-robaba credenciales de Siemens
+- atacaba centrifugadoras de enriquecimiento de uranio en Irán
+El resultado: 20% de las centrifugadoras iraníes destruidas.
+        """,
+        "technique": "Nation-State APT + SCADA Attack",
+        "year": 2010,
+        "impact": "Physical damage to nuclear facility",
+        "lesson": "Cyber warfare can have real-world physical consequences.",
+    },
+    "colonial_pipeline": {
+        "title": "Colonial Pipeline - Pánico por Gasolina",
+        "hook": "Un ransomware que paralizó la costa este de USA.",
+        "story": """
+Mayo 2021. DarkSide ransomware.
+Colonial Pipeline: proporciona el 45% del combustible de la costa este.
+Result? Colas de gasolina, estado de emergencia declarado.
+Pago de rescate: $4.4 millones (pagado, luego parcialmente recuperado).
+        """,
+        "technique": "Ransomware + Credential Theft",
+        "year": 2021,
+        "impact": "Fuel shortage, $4.4M ransom paid",
+        "lesson": "Critical infrastructure is vulnerable. Offline backups are essential.",
+    },
+    "target_breach": {
+        "title": "Target Breach - 40 Millones de Tarjetas",
+        "hook": "Entraron por... un proveedor de aire acondicionado.",
+        "story": """
+2013. Target stores.
+Los atacantes comprometieron Fazio Mechanical Services (HVAC vendor).
+Desde ahí, accedieron a la red de Target.
+40 millones de tarjetas de crédito robadas.
+CEO renunció. $18.5 millones en demandas.
+        """,
+        "technique": "Supply Chain Attack via Third-Party Vendor",
+        "year": 2013,
+        "impact": "40M credit cards, $18.5M settlement",
+        "lesson": "Your security is only as strong as your weakest vendor.",
+    },
+    "nsa_shadow_brokers": {
+        "title": "Shadow Brokers - Las Armas de la NSA Filtradas",
+        "hook": "El arsenal de cyber-armas más poderoso del mundo... filtrado.",
+        "story": """
+2016-2017. Someone (Russia?) leaked NSA'sEquation Group tools.
+EternalBlue, DoubleFantasy, otros exploits.
+WannaCry, NotPetya usaron estos herramientas.
+Millones de dólares en daños.
+Y EternalBlue... todavía está siendo explotado hoy.
+        """,
+        "technique": "Nation-State Tool Leak",
+        "year": 2016,
+        "impact": "Global ransomware outbreaks using NSA tools",
+        "lesson": "Offensive weapons get leaked. Defense must be proactive.",
+    },
+    "sony_pictures": {
+        "title": "Sony Pictures - El hack más destructivo",
+        "hook": "Películas no publicadas. Emails vergonzosos. Todo filtrado.",
+        "story": """
+Noviembre 2014. "Guardians of Peace" (GOP).
+Amenazas a empleados. Salarios filtrados.
+Películas completas en torrents.
+3000 computadoras, 800 servidores: destruidos.
+Costo estimado: $200 millones+.
+        """,
+        "technique": "Destructive Malware + Data Exfiltration",
+        "year": 2014,
+        "impact": "$200M+ in damages, massive data leak",
+        "lesson": "Destructive attacks can wipe out entire infrastructure.",
+    },
+    "panama_papers": {
+        "title": "Panama Papers - 11 Millones de Documentos",
+        "hook": "Un leak que cambió la política mundial.",
+        "story": """
+2016. Mossack Fonseca law firm.
+11.5 millones documentos filtrados.
+Políticos, athletes, celebrities implicado en evasión fiscal.
+Resultado: renuncias, investigaciones, cambios de leyes.
+        """,
+        "technique": "Spear Phishing + Zero-Day",
+        "year": 2016,
+        "impact": "Global political fallout, resignations",
+        "lesson": "Social engineering works. Even on law firms.",
+    },
+    "capital_one": {
+        "title": "Capital One - 100 Millones de Datos",
+        "hook": "Una configuración de firewall mal feita.",
+        "story": """
+Marzo 2019. Paige Thompson (Ex-Amazon AWS).
+Encontró un misconfigured WAF en Capital One.
+100 millones de clientes afectados.
+SSNs, direcciones, incomes: expuestos.
+Costo: $190 millones en multas y remediación.
+        """,
+        "technique": "Cloud Misconfiguration Exploitation",
+        "year": 2019,
+        "impact": "100M customers affected, $190M penalty",
+        "lesson": "Cloud configs matter. S3 buckets and WAF rules are critical.",
+    },
+    "solar_leaks": {
+        "title": "SolarLeaks - Vendiendo el Sol",
+        "hook": "Datos de SolarWinds a la venta por $1M.",
+        "story": """
+2021. Después de SolarWinds, alguien creó "SolarLeaks".
+Ofrecía datos de víctimas a la venta:
+- Microsoft source code
+- US government data
+- Cisco, Intel, etc.
+Precio: hasta $5M.
+        """,
+        "technique": "Data Extortion After Supply Chain Attack",
+        "year": 2021,
+        "impact": "Secondary market for stolen data exposed",
+        "lesson": "Initial breach is just the beginning. Data has long-term value.",
+    },
 }
 
 # ============================================

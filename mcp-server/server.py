@@ -26,6 +26,7 @@ from .tools.narrative import generate_narrative
 from .tools.vulnerabilities import get_cve_info
 from .tools.ucm_curriculum import get_ucm_module
 from .tools.clean_architecture import get_clean_arch_info
+from .tools.mitre_attack import get_mitre_technique, get_mitre_tactic, get_mitre_group
 
 app = Server("minka-mcp-server")
 
@@ -232,6 +233,32 @@ async def list_tools() -> List[Tool]:
                 },
             },
         ),
+        Tool(
+            name="minka-mitre",
+            description="Search MITRE ATT&CK techniques, tactics, and APT groups",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "technique": {
+                        "type": "string",
+                        "description": "Technique name or ID: phishing, ransomware, psexec, process_injection, etc.",
+                    },
+                    "tactic": {
+                        "type": "string",
+                        "description": "Tactic name: initial_access, execution, persistence, etc.",
+                    },
+                    "group": {
+                        "type": "string",
+                        "description": "APT group name: apt29, apt41, lazarus, sandworm, fin7",
+                    },
+                    "format": {
+                        "type": "string",
+                        "enum": ["brief", "full", "defense", "summary"],
+                        "default": "brief",
+                    },
+                },
+            },
+        ),
     ]
 
 
@@ -279,8 +306,23 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
                 arguments.get("language", "general"),
                 arguments.get("format", "explanation"),
             )
+        elif name == "minka-mitre":
+            if arguments.get("technique"):
+                result = await get_mitre_technique(
+                    arguments.get("technique", ""), arguments.get("format", "brief")
+                )
+            elif arguments.get("tactic"):
+                result = await get_mitre_tactic(
+                    arguments.get("tactic", ""), arguments.get("format", "summary")
+                )
+            elif arguments.get("group"):
+                result = await get_mitre_group(
+                    arguments.get("group", ""), arguments.get("format", "brief")
+                )
+            else:
+                result = "Please specify technique, tactic, or group"
         else:
-            result = f"Unknown tool: {name}. Available tools: minka-experts, minka-ai-security, minka-ai-research, minka-cases, minka-quote, minka-narrative, minka-vuln, minka-ucm, minka-cleanarch"
+            result = f"Unknown tool: {name}. Available tools: minka-experts, minka-ai-security, minka-ai-research, minka-cases, minka-quote, minka-narrative, minka-vuln, minka-ucm, minka-cleanarch, minka-mitre"
 
         return [TextContent(type="text", text=result)]
 
