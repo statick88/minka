@@ -457,10 +457,10 @@ async def get_mitre_technique(technique: str, format: str = "brief") -> str:
 {tactic_data["name"]}
 
 ### Ejemplos
-{"".join(f"- {ex}\n" for ex in examples)}
+{chr(10).join(f"- {ex}" for ex in examples)}
 
 ### Contramedidas
-{"".join(f"- {defense}\n" for defense in defenses)}
+{chr(10).join(f"- {defense}" for defense in defenses)}
 
 ### Severidad
 {tech_info.get("severity", "Medium")}
@@ -469,7 +469,7 @@ async def get_mitre_technique(technique: str, format: str = "brief") -> str:
                     return f"""## {tech_info["name"]} - Defensas
 
 ### Contramedidas Recomendadas
-{"".join(f"1. **{defense}**\n" for defense in tech_info.get("defense", []))}
+{chr(10).join(f"1. **{defense}**" for defense in tech_info.get("defense", []))}
 
 ### Recursos
 - MITRE ATT&CK: https://attack.mitre.org/techniques/{tech_info["id"]}
@@ -534,7 +534,7 @@ Sectores: {", ".join(group_data.get("target_sectors", []))}
 - **Sectores Objetivo:** {", ".join(group_data.get("target_sectors", []))}
 
 ### Técnicas Usadas
-{"".join(f"- {t}\n" for t in group_data.get("techniques", []))}
+{chr(10).join(f"- {t}" for t in group_data.get("techniques", []))}
 
 ### Descripción
 {group_data["description"]}

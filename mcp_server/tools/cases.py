@@ -345,7 +345,8 @@ async def get_case_study(topic: str, style: str = "mitnick", format: str = "summ
     # Buscar caso
     for key, case in cases.items():
         if (
-            topic_lower in case.get("technique", "").lower()
+            key == topic_lower
+            or topic_lower in case.get("technique", "").lower()
             or topic_lower in case.get("title", "").lower()
             or topic_lower in case.get("hook", "").lower()
         ):

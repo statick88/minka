@@ -11,13 +11,6 @@ services:
     environment:
       - PYTHONPATH=/app
       - MINKA_LOG_LEVEL=INFO
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "python -c 'import sys; sys.exit(0)'"]
-      interval: 30s
-      timeout: 10s
-      start_period: 10s
-      retries: 3
     networks:
       - minka-network
 
@@ -32,9 +25,8 @@ services:
       - PYTHONPATH=/app
       - MINKA_LOG_LEVEL=DEBUG
     volumes:
-      - ./mcp-server:/app/mcp-server
+      - ./mcp_server:/app/mcp_server
       - ./src/core/personality:/app/src/core/personality
-    restart: unless-stopped
     profiles:
       - dev
     networks:

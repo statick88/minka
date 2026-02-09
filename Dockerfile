@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir mcp>=1.26.0
 
 # Copy application
-COPY mcp-server/ ./mcp-server/
+COPY mcp_server/ ./mcp_server/
 COPY src/core/personality/ ./src/core/personality/
 
 # Create non-root user for security
@@ -29,5 +29,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 3000
 
-# Run server
-CMD ["python", "-m", "mcp-server.server", "--port", "3000"]
+# Run server (redirect output to /dev/null for health check)
+CMD ["python", "-m", "mcp_server.server"]

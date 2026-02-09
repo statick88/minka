@@ -11,42 +11,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           pip install ruff mypy
-      
+
       - name: Run Ruff Linter
-        run: ruff check src/ tests/
-      
+        run: ruff check mcp_server/
+
       - name: Run MyPy Type Checker
-        run: mypy src/ --strict
+        run: mypy mcp_server/ --strict
 
   test:
     runs-on: ubuntu-latest
     needs: lint
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: pip install -r requirements.txt pytest pytest-cov
-      
+
       - name: Run Tests
-        run: pytest --cov=src --cov-report=xml --cov-report=term-missing
-      
+        run: pytest --cov=mcp_server --cov-report=xml --cov-report=term-missing
+
       - name: Upload Coverage
         uses: codecov/codecov-action@v4
         with:
@@ -58,21 +58,21 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: pip install safety bandit
-      
+
       - name: Run Safety Check
         run: safety check -r requirements.txt || true
-      
+
       - name: Run Bandit Security Scan
-        run: bandit -r src/ -f json | tee bandit_report.json
-      
+        run: bandit -r mcp_server/ -f json | tee bandit_report.json
+
       - name: Upload Security Report
         uses: actions/upload-artifact@v4
         if: always()
@@ -86,20 +86,20 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./docker
+          context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/minka:latest
           cache-from: type=gha
@@ -107,20 +107,21 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [lint, test, security]
+    needs: [lint, test, security, docker]
     if: always()
     steps:
       - name: Check Status
         run: |
-          if [[ "${{ needs.lint.result }}" == "failure" ]] || 
+          if [[ "${{ needs.lint.result }}" == "failure" ]] ||
              [[ "${{ needs.test.result }}" == "failure" ]] ||
-             [[ "${{ needs.security.result }}" == "failure" ]]; then
-            echo "Some jobs failed"
-            exit 1
+             [[ "${{ needs.security.result }}" == "failure" ]] ||
+             [[ "${{ needs.docker.result }}" == "failure" ]]; then
+             echo "Some jobs failed"
+             exit 1
           else
             echo "All jobs passed"
           fi
-      
+
       - name: Discord Notification
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: Ilshidur/action-discord@master

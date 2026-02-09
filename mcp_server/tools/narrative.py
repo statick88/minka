@@ -267,7 +267,7 @@ def format_narrative(narrative: Dict[str, Any], audience: str, format: str) -> s
 {narrative["lesson"]}
 
 **Medidas concretas:**
-{"".join(f"- **{p}**\n" for p in narrative["prevention"])}
+{chr(10).join(f"- **{p}**" for p in narrative["prevention"])}
 
 ---
 

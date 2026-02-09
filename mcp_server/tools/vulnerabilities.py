@@ -4,6 +4,8 @@ Minka Vulnerabilities - CVE Research Database
 Base de datos de vulnerabilidades conocidas y CVEs.
 """
 
+from typing import Dict, Any, List
+
 # ============================================
 # VULNERABILIDADES CONOCIDAS
 # ============================================
