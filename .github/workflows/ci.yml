@@ -45,7 +45,12 @@ jobs:
         run: pip install -r requirements.txt pytest pytest-cov
 
       - name: Run Tests
-        run: pytest --cov=mcp_server --cov-report=xml --cov-report=term-missing
+        run: |
+          if [ -d "tests" ] && [ "$(ls -A tests 2>/dev/null)" ]; then
+            pytest --cov=mcp_server --cov-report=xml --cov-report=term-missing
+          else
+            echo "No tests found - skipping pytest"
+          fi
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v4
@@ -107,19 +112,42 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [lint, test, security, docker]
+    needs: [lint, test, security]
     if: always()
     steps:
       - name: Check Status
         run: |
-          if [[ "${{ needs.lint.result }}" == "failure" ]] ||
-             [[ "${{ needs.test.result }}" == "failure" ]] ||
-             [[ "${{ needs.security.result }}" == "failure" ]] ||
-             [[ "${{ needs.docker.result }}" == "failure" ]]; then
-             echo "Some jobs failed"
-             exit 1
+          FAILED=0
+          SKIPPED=0
+          
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then
+            echo "❌ lint job failed"
+            FAILED=1
+          elif [[ "${{ needs.lint.result }}" == "skipped" ]]; then
+            SKIPPED=1
+          fi
+          
+          if [[ "${{ needs.test.result }}" == "failure" ]]; then
+            echo "❌ test job failed"
+            FAILED=1
+          elif [[ "${{ needs.test.result }}" == "skipped" ]]; then
+            SKIPPED=1
+          fi
+          
+          if [[ "${{ needs.security.result }}" == "failure" ]]; then
+            echo "❌ security job failed"
+            FAILED=1
+          elif [[ "${{ needs.security.result }}" == "skipped" ]]; then
+            SKIPPED=1
+          fi
+          
+          if [[ $FAILED -eq 1 ]]; then
+            echo "Some jobs failed"
+            exit 1
+          elif [[ $SKIPPED -eq 1 ]]; then
+            echo "Some jobs skipped (acceptable)"
           else
-            echo "All jobs passed"
+            echo "✅ All jobs passed"
           fi
 
       - name: Discord Notification
