@@ -11,90 +11,209 @@ Minka is a cybersecurity AI assistant powered by GitHub Copilot SDK with MCP (Mo
 
 ## Prerequisites
 
-- Python 3.11+
-- GitHub Copilot subscription
-- Neovim 0.9+ or VS Code with Copilot extension
+- **Docker** 20.10+
+- **Docker Compose** 2.0+
+- **Git** for cloning
 
-## Quick Start
+That's it! No Python, no pip, no virtual environments needed.
 
-### 1. Clone and Install
+---
+
+## Quick Start (Docker-First)
+
+### 1. Clone and Enter
 
 ```bash
-cd /Users/statick/Minka
-source venv/bin/activate
-pip install -r requirements.txt
-pip install mcp
+git clone https://github.com/statick88/minka.git
+cd minka
 ```
 
 ### 2. Start MCP Server
 
 ```bash
-python -m mcp-server.server
+# Option A: Using the convenience script
+./scripts/start.sh
+
+# Option B: Using docker-compose directly
+docker-compose up -d
 ```
 
-### 3. Configure Your Editor
+### 3. Verify
 
-#### Neovim
-```lua
--- ~/.config/nvim/lua/minka.lua
-require('minka').setup({
-  server = 'localhost:3000',
-  auto_attach = true,
-})
+```bash
+# Check logs
+docker logs minka-mcp-server
+
+# Should see:
+# INFO:     Application startup complete
+# Minka MCP Server running on port 3000
 ```
 
-#### VS Code
-The `mcp.json` is automatically loaded by GitHub Copilot.
+### 4. Test
 
-## Usage Examples
+```bash
+# Run the test script
+./scripts/test.sh
 
-### Search for an Expert
+# Or manually:
+docker exec -it minka-mcp-server python -c "
+import asyncio
+from tools.experts import search_experts
+result = asyncio.run(search_experts('Carlini'))
+print(result[:200])
+"
 ```
-User: "¿Quién es Nicholas Carlini?"
-Minka: **👤 Nicholas Carlini**
+
+Expected output:
+```
+**👤 Nicholas Carlini**
 Research Scientist Anthropic | 60K+ citations
 📍 Anthropic, Google Brain
 🏷️ Adversarial Machine Learning, Security, Neural Networks
 ```
 
-### Get a Vulnerability
-```
-User: "Cuéntame sobre Log4Shell"
-Minka: ## Log4Shell (CVE-2021-44228)
+---
 
-> 🎭 *¿Sabes qué hace esto tan fascinante?*
+## Usage Examples
 
-**Log4Shell** es una vulnerabilidad crítica en Apache Log4j...
+### Docker Commands
 
-### La Historia
-En diciembre de 2021, investigadores descubrieron...
+```bash
+# Start the server
+docker-compose up -d
 
-### La Técnica
-JNDI lookup permite ejecución remota de código...
+# Stop the server
+docker-compose down
 
-### Prevención
-- Actualizar a Log4j 2.17+
-- Limitar conexiones JNDI
-- WAF rules
-```
+# View logs
+docker-compose logs -f
 
-### Learn Clean Architecture
-```
-User: "Explicame SOLID"
-Minka: ## SOLID Principles
-
-Los cinco principios del diseño orientado a objetos:
-
-1. **S**ingle Responsibility Principle
-2. **O**pen/Closed Principle
-3. **L**iskov Substitution Principle
-4. **I**nterface Segregation Principle
-5. **D**ependency Inversion Principle
+# Restart
+docker-compose restart minka-mcp
 ```
 
-## Commands Reference
+### Using MCP Tools
 
-See [COMMANDS.md](./COMMANDS.md) for complete tool reference.
+```bash
+# Search for an expert
+docker exec -it minka-mcp-server python -c "
+import asyncio
+from tools.experts import search_experts
+asyncio.run(search_experts('Dawn Song'))
+"
+
+# Get a vulnerability
+docker exec -it minka-mcp-server python -c "
+import asyncio
+from tools.vulnerabilities import get_cve_info
+asyncio.run(get_cve_info('Log4Shell'))
+"
+
+# Get MITRE ATT&CK technique
+docker exec -it minka-mcp-server python -c "
+import asyncio
+from tools.mitre_attack import get_mitre_technique
+asyncio.run(get_mitre_technique('ransomware', 'brief'))
+"
+
+# Generate a narrative
+docker exec -it minka-mcp-server python -c "
+import asyncio
+from tools.narrative import generate_narrative
+asyncio.run(generate_narrative('SQL injection'))
+"
+```
+
+---
+
+## Neovim Integration
+
+### Prerequisites
+
+- Neovim 0.9+
+- Docker running
+- MCP server running (`docker-compose up -d`)
+
+### Setup
+
+1. **Copy the plugin configuration**:
+```bash
+cp ~/.config/nvim/lua/minka.lua ~/.config/nvim/lua/
+cp ~/.config/nvim/lua/plugins/minka.lua ~/.config/nvim/lua/plugins/
+```
+
+2. **Restart Neovim** or reload:
+```vim
+:Lazy
+:source ~/.config/nvim/init.lua
+```
+
+3. **Verify**:
+```
+:MinkaQuote
+```
+
+Should display a Mitnick-style quote in a floating window.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `:MinkaQuote` | Get a cybersecurity quote |
+| `:MinkaExperts <query>` | Search for a researcher |
+| `:MinkaCase <case>` | Get a case study |
+| `:MinkaNarrative <concept>` | Generate a narrative |
+| `:MinkaVuln <cve>` | Search vulnerability |
+| `:MinkaUCM <module>` | UCM curriculum module |
+| `:MinkaAISecurity <query>` | AI security research |
+| `:MinkaCleanArch <topic>` | Clean Architecture principles |
+| `:MinkaMitre <technique>` | MITRE ATT&CK technique |
+
+### Keybindings
+
+| Keybinding | Description |
+|------------|-------------|
+| `<leader>mq` | Get quote |
+| `<leader>me` | Search expert |
+| `<leader>mc` | Get case study |
+| `<leader>mn` | Generate narrative |
+| `<leader>mv` | Search vulnerability |
+| `<leader>mu` | UCM module |
+| `<leader>ma` | AI security paper |
+| `<leader>ml` | Clean architecture |
+
+---
+
+## GitHub Codespaces
+
+### 1. Open in Codespaces
+
+1. Go to https://github.com/statick88/minka
+2. Click **"Code"** → **"Codespaces"**
+3. Click **"Create codespace on main"**
+
+### 2. Automatic Setup
+
+The `.devcontainer/devcontainer.json` will:
+- Install Docker-in-Docker
+- Build the MCP server container
+- Expose port 3000
+
+### 3. Start Using
+
+```bash
+# In the Codespaces terminal
+docker-compose up -d
+
+# Open Neovim
+nvim
+
+# Use Minka commands
+:MinkaQuote
+:MinkaMitre "phishing"
+```
+
+---
 
 ## Architecture
 
@@ -104,46 +223,103 @@ Minka/
 │   ├── agents/minka.agent.yml    # Custom agent
 │   └── mcp.json                   # MCP configuration
 ├── mcp-server/
-│   ├── server.py                  # MCP server
+│   ├── server.py                  # MCP server (Python)
 │   └── tools/                     # 9 MCP tools
-├── src/core/personality/
-│   ├── SOUL.md                    # 6 profiles
-│   └── IDENTITY.md                # Storytelling style
-└── docs/
-    ├── GETTING_STARTED.md         # This file
-    ├── COMMANDS.md                # Tool reference
-    └── PERSONALITY.md             # Philosophy
+│       ├── experts.py             # Researchers database
+│       ├── cases.py               # Case studies
+│       ├── mitre_attack.py        # MITRE ATT&CK
+│       ├── vulnerabilities.py     # CVE database
+│       └── ...
+├── docs/
+│   ├── GETTING_STARTED.md        # This file
+│   ├── COMMANDS.md               # Tool reference
+│   └── PERSONALITY.md             # Philosophy
+├── scripts/
+│   ├── start.sh                   # Start server
+│   ├── test.sh                    # Test tools
+│   └── stop.sh                    # Stop server
+├── docker-compose.yml             # Docker orchestration
+├── Dockerfile                     # Server container
+└── .devcontainer/                 # Codespaces config
 ```
+
+---
+
+## Troubleshooting
+
+### "Connection refused" on port 3000
+
+```bash
+# Check if container is running
+docker ps | grep minka
+
+# If not running, start it
+docker-compose up -d
+
+# Check logs
+docker-compose logs
+```
+
+### "Module not found" errors
+
+```bash
+# Rebuild the container
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Neovim commands not working
+
+```bash
+# Verify minka.lua is loaded
+nvim -c "lua require('minka')" -c "q"
+
+# Check for errors
+:Messages
+
+# Reload configuration
+:Lazy
+:source ~/.config/nvim/init.lua
+```
+
+### Container uses too much memory
+
+```bash
+# Check memory usage
+docker stats minka-mcp-server
+
+# Limit memory in docker-compose.yml if needed
+```
+
+---
 
 ## Next Steps
 
 1. Read [PERSONALITY.md](./PERSONALITY.md) to understand Minka's philosophy
 2. Check [COMMANDS.md](./COMMANDS.md) for all available tools
-3. Try asking Minka about your cybersecurity questions
+3. Try asking Minka about cybersecurity topics in Neovim
 
-## Troubleshooting
+---
 
-**Server won't start?**
+## Development (Optional)
+
+If you want to develop Minka natively:
+
 ```bash
-# Check Python environment
+# Clone repository
+git clone https://github.com/statick88/minka.git
+cd minka
+
+# Create virtual environment
+python -m venv venv
 source venv/bin/activate
-python -c "import mcp; print('OK')"
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run server
+python -m mcp-server.server
 ```
 
-**Tools not available?**
-```bash
-# Verify mcp.json is in correct location
-ls -la .github/copilot/
-```
-
-**Neovim not connecting?**
-```bash
-# Test MCP server manually
-python -c "
-import asyncio
-import sys
-sys.path.insert(0, 'mcp-server')
-from tools.experts import search_experts
-asyncio.run(search_experts('Carlini'))
-"
-```
+**Note**: This is optional. Docker is the recommended approach for using Minka.
