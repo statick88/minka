@@ -137,10 +137,10 @@ def version() -> None:
 
 
 # Add subcommands
-cli.add_command(scan.scan)
-cli.add_command(analyze.analyze)
-cli.add_command(lab.lab)
-cli.add_command(chat.chat)
+cli.add_command(scan)
+cli.add_command(analyze)
+cli.add_command(lab)
+cli.add_command(chat)
 
 
 def main() -> None:
