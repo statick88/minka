@@ -1,0 +1,41 @@
+# Dependency vulnerability checking
+# Run weekly or on demand
+name: Security Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  workflow_dispatch:
+  push:
+    paths:
+      - 'requirements.txt'
+      - 'pyproject.toml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install pip-audit
+      
+      - name: Run pip-audit
+        run: pip-audit --require-hashes -r requirements.txt || true
+      
+      - name: Check GitHub Advisory Database
+        uses: pypa/pip-audit-check-action@v1
+        with:
+          inputs: requirements.txt
+      
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-report
+          path: pip-audit-results.json

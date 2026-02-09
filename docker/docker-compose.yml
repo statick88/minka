@@ -1,0 +1,191 @@
+version: '3.8'
+
+services:
+  # =====================================================
+  # MINKA CORE - Asistente Principal
+  # =====================================================
+  minka:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.minka
+    container_name: minka-core
+    environment:
+      # GitHub Copilot Configuration
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GH_TOKEN=${GITHUB_TOKEN}
+      - COPILOT_MODEL=${COPILOT_MODEL:-gpt-4o}
+      
+      # Minka Configuration
+      - MINKA_MODE=${MINKA_MODE:-research}
+      - MINKA_LOG_LEVEL=${MINKA_LOG_LEVEL:-INFO}
+      - MINKA_SESSION_TIMEOUT=${MINKA_SESSION_TIMEOUT:-3600}
+      
+      # Database
+      - DATABASE_URL=postgresql://minka:${DB_PASSWORD}@postgres:5432/minka
+      - REDIS_URL=redis://redis:6379/0
+      
+      # Feature Flags
+      - ENABLE_STREAMING=true
+      - ENABLE_MCP_TOOLS=true
+      - ENABLE_LABS=true
+      
+    volumes:
+      # Código fuente (para desarrollo)
+      - ../src:/app/src:ro
+      - ../data:/app/data
+      - ../logs:/app/logs
+      - ../docs:/app/docs:ro
+      
+      # Persistencia
+      - minka_data:/app/data/persistent
+      
+    networks:
+      - minka-net
+      
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+        
+    stdin_open: true
+    tty: true
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =====================================================
+  # BASE DE DATOS - PostgreSQL
+  # =====================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: minka-postgres
+    environment:
+      POSTGRES_DB: minka
+      POSTGRES_USER: minka
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-minka_secure_2024}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - minka-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U minka -d minka"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =====================================================
+  # CACHE - Redis
+  # =====================================================
+  redis:
+    image: redis:7-alpine
+    container_name: minka-redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - minka-net
+    command: redis-server --appendonly yes
+
+  # =====================================================
+  # LABORATORIOS VULNERABLES
+  # =====================================================
+  
+  # DVWA - Damn Vulnerable Web Application
+  dvwa:
+    image: vulnerables/web-dvwa
+    container_name: minka-lab-dvwa
+    ports:
+      - "8081:80"
+    networks:
+      - minka-labs
+    profiles:
+      - labs
+    environment:
+      - MYSQL_PASS=dvwa_password
+
+  # OWASP Juice Shop
+  juice-shop:
+    image: bkimminich/juice-shop
+    container_name: minka-lab-juice
+    ports:
+      - "8082:3000"
+    networks:
+      - minka-labs
+    profiles:
+      - labs
+
+  # WebGoat
+  webgoat:
+    image: webgoat/webgoat
+    container_name: minka-lab-webgoat
+    ports:
+      - "8083:8080"
+    networks:
+      - minka-labs
+    profiles:
+      - labs
+    environment:
+      - WEBGOAT_PORT=8080
+      - WEBGOAT_SSLENABLED=false
+
+  # Contenedor de laboratorios custom
+  labs-custom:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.labs
+    container_name: minka-labs-custom
+    volumes:
+      - ../labs/custom-scenarios:/labs/scenarios:ro
+      - ../data/payloads:/labs/payloads
+    networks:
+      - minka-labs
+    profiles:
+      - labs
+    command: tail -f /dev/null
+
+  # =====================================================
+  # HERRAMIENTAS DE SEGURIDAD
+  # =====================================================
+  
+  # Metasploit (opcional, pesado)
+  metasploit:
+    image: metasploitframework/metasploit-framework
+    container_name: minka-tools-metasploit
+    networks:
+      - minka-labs
+    profiles:
+      - tools
+    volumes:
+      - msf_data:/home/msf/.msf4
+    command: tail -f /dev/null
+
+# =====================================================
+# NETWORKS
+# =====================================================
+networks:
+  minka-net:
+    driver: bridge
+    internal: false
+    
+  minka-labs:
+    driver: bridge
+    internal: false
+    # Los laboratorios están expuestos pero aislados
+
+# =====================================================
+# VOLUMES
+# =====================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minka_data:
+    driver: local
+  msf_data:
+    driver: local

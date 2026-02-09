@@ -1,0 +1,66 @@
+FROM python:3.11-slim
+
+LABEL maintainer="Minka Project - UCM Cybersecurity Master"
+LABEL description="Minka - AI Cybersecurity Assistant using GitHub Copilot SDK"
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    nmap \
+    nikto \
+    sqlmap \
+    wireshark-common \
+    tcpdump \
+    net-tools \
+    iputils-ping \
+    dnsutils \
+    whois \
+    jq \
+    vim \
+    nano \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar Node.js 18 (requerido para Copilot CLI)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar GitHub Copilot CLI
+RUN npm install -g @github/copilot
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar requirements primero para cache
+COPY pyproject.toml requirements.txt ./
+
+# Instalar dependencias Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código fuente
+COPY src/ ./src/
+COPY data/ ./data/
+COPY labs/ ./labs/
+COPY docs/ ./docs/
+COPY scripts/ ./scripts/
+
+# Crear directorios necesarios
+RUN mkdir -p /app/data/{cve_cache,wordlists,payloads,reports} \
+    && mkdir -p /app/logs
+
+# Configurar PATH para incluir scripts
+ENV PATH="/app/scripts:${PATH}"
+ENV PYTHONPATH="/app/src:${PYTHONPATH}"
+ENV MINKA_HOME="/app"
+ENV MINKA_MODE="research"
+
+# Hacer ejecutables los scripts
+RUN chmod +x /app/scripts/*.sh
+
+# Puerto para futura API web
+EXPOSE 8000
+
+# Comando por defecto
+CMD ["python", "-m", "src.cli.main"]

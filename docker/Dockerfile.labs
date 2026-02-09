@@ -1,0 +1,38 @@
+FROM python:3.11-slim
+
+LABEL maintainer="Minka Project - Vulnerable Labs"
+LABEL description="Laboratorios vulnerables para prácticas de ciberseguridad"
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    nmap \
+    nikto \
+    sqlmap \
+    gcc \
+    make \
+    gdb \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear directorio de trabajo
+WORKDIR /labs
+
+# Instalar herramientas de seguridad adicionales
+RUN pip install --no-cache-dir \
+    pwntools \
+    requests \
+    beautifulsoup4 \
+    scapy
+
+# Copiar escenarios custom
+COPY labs/custom-scenarios/ ./custom-scenarios/
+
+# Configurar entorno
+ENV LAB_ENV="isolated"
+ENV PYTHONPATH="/labs:${PYTHONPATH}"
+
+# Comando por defecto mantiene el contenedor corriendo
+CMD ["tail", "-f", "/dev/null"]
