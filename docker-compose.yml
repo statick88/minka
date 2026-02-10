@@ -1,37 +1,11 @@
-version: '3.8'
-
 services:
   minka-mcp:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: minka-mcp-server
-    ports:
-      - "3000:3000"
     environment:
       - PYTHONPATH=/app
       - MINKA_LOG_LEVEL=INFO
-    networks:
-      - minka-network
-
-  minka-mcp-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: minka-mcp-dev
-    ports:
-      - "3001:3000"
-    environment:
-      - PYTHONPATH=/app
-      - MINKA_LOG_LEVEL=DEBUG
     volumes:
-      - ./mcp_server:/app/mcp_server
-      - ./src/core/personality:/app/src/core/personality
-    profiles:
-      - dev
-    networks:
-      - minka-network
-
-networks:
-  minka-network:
-    driver: bridge
+      - ./mcp_server:/app/mcp_server:ro

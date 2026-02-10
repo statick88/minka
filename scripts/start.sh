@@ -25,23 +25,21 @@ if [ ! -f "docker-compose.yml" ]; then
     exit 1
 fi
 
-# Start the MCP server
+# Remove old container if exists
+docker rm -f minka-mcp-server 2>/dev/null || true
+
+# Build and start fresh
+docker-compose build --no-cache
+
+# Start container (will exit after tests complete since MCP uses stdio)
 docker-compose up -d
 
-# Wait for the server to be ready
-echo "⏳ Waiting for MCP server to start..."
-sleep 3
-
-# Check if container is running
-if docker ps | grep -q "minka-mcp-server"; then
-    echo "✅ Minka MCP Server is running!"
-    echo ""
-    echo "   Server URL: http://localhost:3000"
-    echo "   Logs: docker-compose logs -f"
-    echo "   Stop: ./scripts/stop.sh"
-    echo "   Test: ./scripts/test.sh"
-else
-    echo "❌ Error: Failed to start MCP server."
-    echo "   Check logs with: docker-compose logs"
-    exit 1
-fi
+echo ""
+echo "✅ Minka MCP Server is ready!"
+echo ""
+echo "   Usage:"
+echo "   - Test tools: ./scripts/test.sh"
+echo "   - Run quote: docker run --rm -e PYTHONPATH=/app minka-minka-mcp python3 -c \"from mcp_server.tools.quotes import get_quote; import asyncio; print(asyncio.run(get_quote()))\""
+echo ""
+echo "   Note: MCP server uses stdio transport for GitHub Copilot."
+echo "   The container runs once per request and exits."
